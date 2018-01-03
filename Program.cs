@@ -102,19 +102,60 @@ namespace productMadness
             return runs_from_plan;
         }
 
-        public static TimeSpan GetTimeSpanFromString(String estimate)
+        public static double GetTimeSpanFromString(String estimate)
         {
-            TimeSpan ts = new TimeSpan();
+            double seconds = 0;
             try
             {
-                String test = "1h 20m 5s";
+                //String test = "1h 20m 5s";
+                var parts = estimate.Split(' ');
+                foreach (var part in parts)
+                {
+                    char identifier = part[part.Count() - 1];
+                    if (identifier == 'h')
+                    {
+                        try
+                        {
+                            double add = double.Parse(part.Substring(0, part.Count() - 1));
+                            seconds += 60 * 60 * add;
+                        }
+                        catch (Exception e)
+                        {
+                            logInFile(String.Format("{0}::Error when trying to get timespan", DateTime.Now));
+                        }
+                    }
+                    if (identifier == 'm')
+                    {
+                        try
+                        {
+                            double add = double.Parse(part.Substring(0, part.Count() - 1));
+                            seconds += 60 * add;
+                        }
+                        catch (Exception e)
+                        {
+                            logInFile(String.Format("{0}::Error when trying to get timespan", DateTime.Now));
+                        }
+                    }
+                    if (identifier == 's')
+                    {
+                        try
+                        {
+                            double add = double.Parse(part.Substring(0, part.Count() - 1));
+                            seconds += add;
+                        }
+                        catch (Exception e)
+                        {
+                            logInFile(String.Format("{0}::Error when trying to get timespan", DateTime.Now));
+                        }
+                    }
+                }
 
             }
             catch(Exception e)
             {
                 //logInFile(String.Format("{0}::Error when trying to get timespan", DateTime.Now));
             }
-            return ts;
+            return seconds;
         }
 
         static void Main(string[] args)
@@ -160,6 +201,7 @@ namespace productMadness
             //TimeSpan ts = new TimeSpan(1, 2, 3);
             //var xt = ts.TotalSeconds;
             //Console.WriteLine(String.Format("Period--Project--Milestone--TestCase--TestCaseId--TestResultId--TestedBy--Elapsed--Estimate"));
+            //var tre = GetTimeSpanFromString("");
             var users = GetUsers(testrail);
             //var xu = GetUserById(users[0].ID, users);
             //var t = 0;
@@ -202,7 +244,7 @@ namespace productMadness
 
                                     //Console.WriteLine(String.Format("{0}--{1}--{2}--{3}--{4}--{5}--{6}--{7}--{8}::{9}::{10}", last_result.TestID, project.Name, pm.Name, test_info.Title, case_info.ID, last_result.ID, last_result.CreatedBy, last_result.Elapsed, case_estimate, plan.ID, rp.ID));
                                     pm_repo.Model.TestResultEntry entry = new pm_repo.Model.TestResultEntry(project.Name, project.ID, pm.Name, pm.ID, test_info.Title, test_info.ID.Value,
-                                        case_info.ID.Value, last_result.ID, createdByName, last_result.Elapsed.Value.TotalSeconds, 2);//elapsedInMin, estimateInMin);
+                                        case_info.ID.Value, last_result.ID, createdByName, last_result.Elapsed.Value.TotalSeconds, GetTimeSpanFromString(case_estimate.ToString()));
                                     var et = 0;
                                 }
                                 catch(Exception e)
