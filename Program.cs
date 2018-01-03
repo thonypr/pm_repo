@@ -39,15 +39,32 @@ namespace productMadness
             //var pass = "j80jMZhIxUqqUI5QIZ*L";
             TestRail.TestRailClient testrail = new TestRail.TestRailClient(baseUrl, login, pass);
             #endregion
+            DateTime dateX = DateTime.Parse("01.12.2017 00:00:00");
+            DateTime dateY = DateTime.Parse("31.12.2017 23:59:59");
             var projects = testrail.GetProjects().Where(x => x.Name == "PM - Back Office & Server" ||
-                                                             x.Name == "PM - Cashman Casino - Mobile" ||
-                                                             x.Name == "PM - FaFaFa Gold - Mobile" ||
-                                                             x.Name == "PM - Heart of Vegas - Mobile" ||
-                                                             x.Name == "PM - Heart of Vegas - Web" ||
+                                                             x.Name == "PM - Cashman Casino - Mobile" /*||*/
+                                                             //x.Name == "PM - FaFaFa Gold - Mobile" ||
+                                                             //x.Name == "PM - Heart of Vegas - Mobile" ||
+                                                             //x.Name == "PM - Heart of Vegas - Web" ||
                                                              //x.Name == "PM - Cashman Casino - Web (в будущем)" ||
-                                                             x.Name == "PM - Lightning Link - Mobile");
-            testrail.
+                                                             /*x.Name == "PM - Lightning Link - Mobile"*/);
 
+            foreach (var project in projects)
+            {
+                var project_milestones = testrail.GetMilestones(project.ID).Where(cm => cm.IsCompleted == true && cm.CompletedOn >= dateX && cm.CompletedOn <= dateY);
+                foreach (var pm in project_milestones)
+                {
+                    var plans = testrail.GetPlans(project.ID).Where(p => p.MilestoneID == pm.ID);
+                    foreach (var plan in plans)
+                    {
+                        var entries_runs = plan.JsonFromResponse["entries"];
+                        var z = 0;
+                    }
+                    var xx = 0;
+                }
+
+                var x = 0;
+            }
 
             var i = 0;
         }

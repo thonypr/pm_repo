@@ -9,3 +9,8 @@ D:\Development\pm_repo\pm_repo\pm_repo\obj\Debug\pm_repo.pdb
 D:\Development\pm_repo\pm_repo\pm\pm_repo\bin\Debug\pm_repo.exe.config
 D:\Development\pm_repo\pm_repo\pm\pm_repo\obj\Debug\pm_repo.exe
 D:\Development\pm_repo\pm_repo\pm\pm_repo\obj\Debug\pm_repo.pdb
+D:\Development\pm_repo\pm_repo\pm\pm_repo\bin\Debug\pm_repo.exe
+D:\Development\pm_repo\pm_repo\pm\pm_repo\bin\Debug\pm_repo.pdb
+D:\Development\pm_repo\pm_repo\pm\pm_repo\bin\Debug\Newtonsoft.Json.dll
+D:\Development\pm_repo\pm_repo\pm\pm_repo\bin\Debug\Newtonsoft.Json.xml
+D:\Development\pm_repo\pm_repo\pm\pm_repo\obj\Debug\pm_repo.csprojResolveAssemblyReference.cache
