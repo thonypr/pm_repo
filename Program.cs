@@ -55,7 +55,7 @@ namespace productMadness
 
         public static void logInFile(String log)
         {
-            String fileNamePostfix = DateTime.Now.Day.ToString() + DateTime.Now.Month.ToString();
+            String fileNamePostfix = String.Format("_{0}", DateTime.Now.ToString("yyyy-MM-dd"));
             String logFile = String.Empty;
             var path = ConfigurationManager.AppSettings["defectivesExportPath"].ToString();
             var dir = path + String.Format("//defs{0}.txt", fileNamePostfix);
@@ -188,8 +188,11 @@ namespace productMadness
             //var pass = "j80jMZhIxUqqUI5QIZ*L";
             TestRail.TestRailClient testrail = new TestRail.TestRailClient(baseUrl, login, pass);
             #endregion
-            DateTime dateX = DateTime.Parse("01.12.2017 00:00:00");
-            DateTime dateY = DateTime.Parse("31.12.2017 23:59:59");
+            DateTime now = DateTime.Now;
+            DateTime lastDate = new DateTime(now.Year, now.Month, 1);
+            DateTime startDate = lastDate.AddMonths(-1);
+            DateTime dateX = startDate;
+            DateTime dateY = lastDate;
             var projects = testrail.GetProjects().Where(x => x.Name == "PM - Back Office & Server" ||
                                                         x.Name == "PM - Cashman Casino - Mobile" ||
                                                         x.Name == "PM - FaFaFa Gold - Mobile" ||
@@ -197,17 +200,13 @@ namespace productMadness
                                                         x.Name == "PM - Heart of Vegas - Web" ||
                                                         x.Name == "PM - Cashman Casino - Web" ||
                                                         x.Name == "PM - Lightning Link - Mobile");
-
-            //TimeSpan ts = new TimeSpan(1, 2, 3);
-            //var xt = ts.TotalSeconds;
-            //Console.WriteLine(String.Format("Period--Project--Milestone--TestCase--TestCaseId--TestResultId--TestedBy--Elapsed--Estimate"));
-            //var tre = GetTimeSpanFromString("");
             var users = GetUsers(testrail);
-            //var xu = GetUserById(users[0].ID, users);
-            //var t = 0;
+            List<pm_repo.Model.TestResultEntry> entries = new List<pm_repo.Model.TestResultEntry>();
+            #region iterate through results
             foreach (var project in projects)
             {
-                var project_milestones = testrail.GetMilestones(project.ID).Where(cm => cm.IsCompleted == true && cm.CompletedOn >= dateX && cm.CompletedOn <= dateY);
+                Console.Write(String.Format("Project:{0} ...", project.Name));
+                var project_milestones = testrail.GetMilestones(project.ID).Where(cm => cm.IsCompleted == true && cm.CompletedOn >= dateX && cm.CompletedOn < dateY);
                 foreach (var pm in project_milestones)
                 {
                     var plans = testrail.GetPlans(project.ID).Where(p => p.MilestoneID == pm.ID);
@@ -215,7 +214,6 @@ namespace productMadness
                     {
                         //var entries_runs = plan.JsonFromResponse["entries"];
                         // workaround
-                        //List<int> runs_from_plan = new List<int>();
                         List<TestRail.Types.Run> runs_from_plan = new List<TestRail.Types.Run>();
                         var run_ids_from_plan = GetRunsFromPlan(plan.ID, login, pass);
                         foreach (var runId in run_ids_from_plan)
@@ -226,10 +224,6 @@ namespace productMadness
                         // workaround ended
                         foreach (var rp in runs_from_plan)
                         {
-                            //var run_tests = testrail.GetTests(rp.ID.Value);
-                            //foreach (var rt in run_tests)
-                            //{
-                                //var run_cases = testrail.GetCase()
                             var test_results = testrail.GetResultsForRun(rp.ID.Value).GroupBy(rp1 => rp1.TestID);
                             foreach (var results_group in test_results)
                             {
@@ -241,37 +235,25 @@ namespace productMadness
                                     case_info = testrail.GetCase(test_info.CaseID.Value);
                                     var case_estimate = case_info.Estimate;
                                     var createdByName = GetUserById(last_result.CreatedBy.Value, users);
-
-                                    //Console.WriteLine(String.Format("{0}--{1}--{2}--{3}--{4}--{5}--{6}--{7}--{8}::{9}::{10}", last_result.TestID, project.Name, pm.Name, test_info.Title, case_info.ID, last_result.ID, last_result.CreatedBy, last_result.Elapsed, case_estimate, plan.ID, rp.ID));
+                                    var period = dateX.ToString();
                                     pm_repo.Model.TestResultEntry entry = new pm_repo.Model.TestResultEntry(project.Name, project.ID, pm.Name, pm.ID, test_info.Title, test_info.ID.Value,
-                                        case_info.ID.Value, last_result.ID, createdByName, last_result.Elapsed.Value.TotalSeconds, GetTimeSpanFromString(case_estimate.ToString()));
+                                        case_info.ID.Value, last_result.ID, createdByName, last_result.Elapsed.Value.TotalSeconds, GetTimeSpanFromString(case_estimate.ToString()), period);
+                                    entries.Add(entry);
                                     var et = 0;
                                 }
                                 catch(Exception e)
                                 {
-                                    //Console.WriteLine(String.Format("Error when trying to export\nTRID:{0}\nTest:{1}", last_result, results_group.ToList()[0].TestID));
-                                    // write to file creds for defected case
                                     logInFile(String.Format("Project:{0}::Milestone:{1}::Plan:{2}::Run:{3}::Test:{4}::TestResult:{5}", project.ID, pm.ID, plan.ID, rp.ID, last_result.TestID, last_result.ID));
                                 }
                             }
-                            var tt = 0;
-                            //}
-                            var zo = 0;
                         }
-
-                        
-                        var xxx = 0;
-                        
-
-                        var z = 0;
                     }
-                    var xx = 0;
                 }
-
-                var x = 0;
+                Console.Write("Done!\n");
             }
-
-            var i = 0;
+            #endregion
+            pm_repo.ExcelExport.ExcelExport.exportDataToExcel(pm_repo.ExcelExport.ExcelExport.entriesHeaderWithValues(entries));
+            logInFile(String.Format("Started at:{0}\nFinished at:{1}", now, DateTime.Now));
         }
     }
 }

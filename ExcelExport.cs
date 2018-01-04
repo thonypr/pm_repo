@@ -14,7 +14,7 @@ namespace pm_repo.ExcelExport
     {
         public static void exportDataToExcel(DataSet entries)
         {
-            String fileNamePostfix = DateTime.Now.Hour.ToString() + DateTime.Now.Day.ToString() + DateTime.Now.Month.ToString();
+            String fileNamePostfix = String.Format("_{0}", DateTime.Now.ToString("yyyy-MM-dd"));
             Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
             Microsoft.Office.Interop.Excel.Workbook excelWorkbook = excelApp.Workbooks.Add();
             foreach (DataTable table in entries.Tables)
@@ -61,13 +61,14 @@ namespace pm_repo.ExcelExport
             return entries;
         }
 
-        public static DataSet entriesHeaderWithValues(List<int> results)
+        public static DataSet entriesHeaderWithValues(List<Model.TestResultEntry> results)
         {
             DataTable entries = entriesHeader();
             DataSet entriesValues = new DataSet("TestResults");
             foreach (var item in results)
             {
-                //entries.Rows.Add(item.id, item.runName, item.test_id, item.caseId, item.status, item.testName, item.created_by, item.createdOn, item.assignedto_id, item.defects, item.runCreatedOn);
+                entries.Rows.Add(item.projectName, item.projectId, item.milestone, item.milestoneId, item.testName, item.testId, item.caseId, item.testResultId,
+                    item.createdBy, item.elapsedInSec, item.estimateInSec, item.period);
             }
             entriesValues.Tables.Add(entries);
             return entriesValues;

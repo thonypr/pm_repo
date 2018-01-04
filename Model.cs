@@ -21,9 +21,10 @@ namespace pm_repo
             public String createdBy { get; set; }
             public double elapsedInSec { get; set; }
             public double estimateInSec { get; set; }
+            public String period { get; set; }
 
             public TestResultEntry(String projectName, ulong projectId, String milestone, ulong milestoneId, String testName, ulong testId, 
-                ulong caseId, ulong testResultId, String createdBy, double elapsedInSec, double estimateInSec) {
+                ulong caseId, ulong testResultId, String createdBy, double elapsedInSec, double estimateInSec, String period) {
 
                 this.projectName = projectName;
                 this.projectId = projectId;
@@ -36,6 +37,7 @@ namespace pm_repo
                 this.createdBy = createdBy;
                 this.elapsedInSec = elapsedInSec;
                 this.estimateInSec = estimateInSec;
+                this.period = period;
             }
         }
     }

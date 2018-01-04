@@ -48,3 +48,5 @@ Temporary Items
 bin/Debug/conf/conf.txt
 *.exe
 bin/Debug/pm_repo.exe
+*.exe
+bin/Debug/pm_repo.pdb
