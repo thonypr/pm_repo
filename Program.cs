@@ -188,11 +188,14 @@ namespace productMadness
             //var pass = "j80jMZhIxUqqUI5QIZ*L";
             TestRail.TestRailClient testrail = new TestRail.TestRailClient(baseUrl, login, pass);
             #endregion
-            DateTime now = DateTime.Now;
+            var delta = int.Parse(ConfigurationManager.AppSettings["delta"]);
+            DateTime now = DateTime.Now.AddMonths(delta);
             DateTime lastDate = new DateTime(now.Year, now.Month, 1);
             DateTime startDate = lastDate.AddMonths(-1);
             DateTime dateX = startDate;
             DateTime dateY = lastDate;
+
+            Console.WriteLine(String.Format("From:{0}\nTo:{1}\n", dateX, dateY));
             var projects = testrail.GetProjects().Where(x => x.Name == "PM - Back Office & Server" ||
                                                         x.Name == "PM - Cashman Casino - Mobile" ||
                                                         x.Name == "PM - FaFaFa Gold - Mobile" ||
