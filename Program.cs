@@ -162,7 +162,7 @@ namespace productMadness
         {
             List<TestRail.Types.Milestone> result = new List<TestRail.Types.Milestone>();
             //var initMilestones = client.GetMilestones(projectId);
-            var initMilestones = client.GetMilestones(projectId).Where(m => m.Name == "(Amazon) 3.2.0 Release Build - Full Test Pass 1 - Build 3.2.5 - UAT").Select(mi => mi.ID).ToList();
+            var initMilestones = client.GetMilestones(projectId).Select(mi => mi.ID).ToList();
             bool reachedBottom = false;
             //foreach (var init in initMilestones)
             while (initMilestones.Count > 0)
