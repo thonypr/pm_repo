@@ -194,7 +194,8 @@ namespace productMadness
             DateTime dateY = lastDate;
 
             Console.WriteLine(String.Format("From:{0}\nTo:{1}\n", dateX, dateY));
-            #region get project names
+          /*  
+           #region get project names
             try
             {   // Open the text file using a stream reader.
                 using (StreamReader sr = new StreamReader(dir + "\\conf.txt"))
@@ -211,14 +212,15 @@ namespace productMadness
                 Console.WriteLine(e.Message);
             }
             #endregion
+            */
 
-            var projects = testrail.GetProjects().Where(x => x.Name == "PM - Back Office & Server" ||
+            var projects = testrail.GetProjects().Where(x => /*x.Name == "PM - Back Office & Server" ||
                                                         x.Name == "PM - Cashman Casino - Mobile" ||
                                                         x.Name == "PM - FaFaFa Gold - Mobile" ||
-                                                        x.Name == "PM - Heart of Vegas - Mobile" ||
+                                                        */x.Name == "PM - Heart of Vegas - Mobile"/* ||
                                                         x.Name == "PM - Heart of Vegas - Web" ||
                                                         x.Name == "PM - Cashman Casino - Web" ||
-                                                        x.Name == "PM - Lightning Link - Mobile");
+                                                        x.Name == "PM - Lightning Link - Mobile"*/);
             var users = GetUsers(testrail);
             List<pm_repo.Model.TestResultEntry> entries = new List<pm_repo.Model.TestResultEntry>();
             #region iterate through results
