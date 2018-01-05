@@ -158,6 +158,49 @@ namespace productMadness
             return seconds;
         }
 
+        public static List<TestRail.Types.Milestone> GetAllSubMilestones(TestRail.TestRailClient client, ulong projectId)
+        {
+            List<TestRail.Types.Milestone> result = new List<TestRail.Types.Milestone>();
+            //var initMilestones = client.GetMilestones(projectId);
+            var initMilestones = client.GetMilestones(projectId).Where(m => m.Name == "(Amazon) 3.2.0 Release Build - Full Test Pass 1 - Build 3.2.5 - UAT").Select(mi => mi.ID).ToList();
+            bool reachedBottom = false;
+            //foreach (var init in initMilestones)
+            while (initMilestones.Count > 0)
+            {
+                var init = initMilestones[0];
+                //check if init has subMilestones
+                var item = client.GetMilestone(init);
+                //add to result
+                result.Add(item);
+                //remove from iteration list
+                initMilestones.Remove(init);
+                try
+                {
+                    var subMilestones = item.JsonFromResponse["milestones"].ToList();
+                    foreach (var sub in subMilestones)
+                    {
+                        try
+                        {
+                            initMilestones.Add(ulong.Parse(sub["id"].ToString()));
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex is FormatException || ex is OverflowException || ex is ArgumentNullException)
+                            {
+                                logInFile(String.Format("{0}::Something went wrong when processing submilestone {2} for milestone {1}", DateTime.Now, init, sub));
+                            }
+                        }
+                    }
+                }
+                catch (ArgumentNullException e)
+                {
+                    //ok, no submilestones
+                }
+            }
+
+            return result;
+        }
+
         static void Main(string[] args)
         {
             #region testrail connect
@@ -194,42 +237,51 @@ namespace productMadness
             DateTime dateY = lastDate;
 
             Console.WriteLine(String.Format("From:{0}\nTo:{1}\n", dateX, dateY));
-          /*  
-           #region get project names
+            List<string> selectedProjects = new List<string>();
+            #region get project names
             try
-            {   // Open the text file using a stream reader.
-                using (StreamReader sr = new StreamReader(dir + "\\conf.txt"))
+            {
+                // Open the text file using a stream reader.
+                var arrayFile = File.ReadAllLines(dir + "\\projects.txt");
+                Parallel.ForEach(arrayFile, row =>
                 {
-                    // Read the stream to a string, and write the string to the console.
-                    login = sr.ReadLine();
-                    pass = sr.ReadLine();
-                    Console.WriteLine("Welcome, " + login + " !");
-                }
+                    selectedProjects.Add(row);
+                });
             }
             catch (Exception e)
             {
-                Console.WriteLine("The file could not be read:");
-                Console.WriteLine(e.Message);
+                logInFile(String.Format("{0}::Error when getting project names", DateTime.Now));
+                return;
             }
-            #endregion
-            */
 
-            var projects = testrail.GetProjects().Where(x => /*x.Name == "PM - Back Office & Server" ||
+            #endregion
+
+            /*var projects = testrail.GetProjects().Where(x => /*x.Name == "PM - Back Office & Server" ||
                                                         x.Name == "PM - Cashman Casino - Mobile" ||
                                                         x.Name == "PM - FaFaFa Gold - Mobile" ||
-                                                        */x.Name == "PM - Heart of Vegas - Mobile"/* ||
+                                                        x.Name == "PM - Heart of Vegas - Mobile" ||
                                                         x.Name == "PM - Heart of Vegas - Web" ||
                                                         x.Name == "PM - Cashman Casino - Web" ||
-                                                        x.Name == "PM - Lightning Link - Mobile"*/);
+                                                        x.Name == "PM - Lightning Link - Mobile");
+                                                        */
+            var projects = testrail.GetProjects().Where(p => selectedProjects.Contains(p.Name));
+            
             var users = GetUsers(testrail);
             List<pm_repo.Model.TestResultEntry> entries = new List<pm_repo.Model.TestResultEntry>();
             #region iterate through results
             foreach (var project in projects)
             {
                 Console.Write(String.Format("Project:{0} ...", project.Name));
-                var project_milestones = testrail.GetMilestones(project.ID).Where(cm => cm.IsCompleted == true && cm.CompletedOn >= dateX && cm.CompletedOn < dateY);
+                var rawMilestones = GetAllSubMilestones(testrail, project.ID);
+                var project_milestones = rawMilestones.Where(cm => cm.IsCompleted == true && 
+                                                                   cm.CompletedOn >= dateX && 
+                                                                   cm.CompletedOn < dateY);
+                //var project_milestones = testrail.GetMilestones(project.ID).Where(cm => cm.Name == "(Amazon) 3.2.0 Release Build - Full Test Pass 1 - Build 3.2.5 - UAT" && cm.IsCompleted == true && cm.CompletedOn >= dateX && cm.CompletedOn < dateY);
                 foreach (var pm in project_milestones)
                 {
+                    #region sub-milestones
+                    var subMilestones = testrail.GetMilestone(3181);
+                    #endregion
                     var plans = testrail.GetPlans(project.ID).Where(p => p.MilestoneID == pm.ID);
                     foreach (var plan in plans)
                     {
