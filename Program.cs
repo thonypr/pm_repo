@@ -184,8 +184,6 @@ namespace productMadness
                 Console.WriteLine(e.Message);
             }
             var baseUrl = "https://productmadness.testrail.com/index.php";
-            //var login = "m.mikulik@a1qa.com";
-            //var pass = "j80jMZhIxUqqUI5QIZ*L";
             TestRail.TestRailClient testrail = new TestRail.TestRailClient(baseUrl, login, pass);
             #endregion
             var delta = int.Parse(ConfigurationManager.AppSettings["delta"]);
@@ -196,6 +194,24 @@ namespace productMadness
             DateTime dateY = lastDate;
 
             Console.WriteLine(String.Format("From:{0}\nTo:{1}\n", dateX, dateY));
+            #region get project names
+            try
+            {   // Open the text file using a stream reader.
+                using (StreamReader sr = new StreamReader(dir + "\\conf.txt"))
+                {
+                    // Read the stream to a string, and write the string to the console.
+                    login = sr.ReadLine();
+                    pass = sr.ReadLine();
+                    Console.WriteLine("Welcome, " + login + " !");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("The file could not be read:");
+                Console.WriteLine(e.Message);
+            }
+            #endregion
+
             var projects = testrail.GetProjects().Where(x => x.Name == "PM - Back Office & Server" ||
                                                         x.Name == "PM - Cashman Casino - Mobile" ||
                                                         x.Name == "PM - FaFaFa Gold - Mobile" ||
