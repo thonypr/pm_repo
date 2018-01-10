@@ -1,0 +1,3 @@
+0:Passed
+1:Failed
+10:Passed with warnings

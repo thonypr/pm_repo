@@ -57,6 +57,7 @@ namespace pm_repo.ExcelExport
             entries.Columns.Add("CreatedBy");
             entries.Columns.Add("Elapsed");
             entries.Columns.Add("Estimate");
+            //entries.Columns.Add("Status");
             entries.Columns.Add("Period");
             return entries;
         }
@@ -67,8 +68,9 @@ namespace pm_repo.ExcelExport
             DataSet entriesValues = new DataSet("TestResults");
             foreach (var item in results)
             {
-                entries.Rows.Add(item.projectName, item.projectId, item.milestone, item.milestoneId, item.testName, item.testId, item.caseId, item.testResultId,
-                    item.createdBy, item.elapsedInSec, item.estimateInSec, item.period);
+                entries.Rows.Add(item.projectName, item.projectId, item.milestone, item.milestoneId, item.testName, 
+                    /*item.testId, */ String.Format("https://productmadness.testrail.com/index.php?/tests/view/{0}", item.testId) ,
+                    item.caseId, item.testResultId, item.createdBy, item.elapsedInSec, item.estimateInSec/*, item.status*/, item.period);
             }
             entriesValues.Tables.Add(entries);
             return entriesValues;

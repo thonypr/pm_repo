@@ -17,3 +17,4 @@ D:\Development\pm_repo\pm_repo\pm\pm_repo\bin\Debug\RestSharp.dll
 D:\Development\pm_repo\pm_repo\pm\pm_repo\bin\Debug\System.ValueTuple.dll
 D:\Development\pm_repo\pm_repo\pm\pm_repo\bin\Debug\System.ValueTuple.xml
 D:\Development\pm_repo\pm_repo\pm\pm_repo\obj\Debug\pm_repo.csproj.ResolveComReference.cache
+D:\Development\pm_repo\pm_repo\pm\pm_repo\obj\Debug\pm_repo.csprojResolveAssemblyReference.cache

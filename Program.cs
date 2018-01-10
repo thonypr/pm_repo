@@ -19,7 +19,7 @@ namespace productMadness
             {
                 users = client.GetUsers();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 logInFile(String.Format("{0}::Error in getting users", DateTime.Now));
             }
@@ -33,7 +33,7 @@ namespace productMadness
             {
                 userName = users.Where(u => u.ID == id).ToList()[0].Name;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 logInFile(String.Format("{0}::Error when getting username for user {1}", DateTime.Now, id));
             }
@@ -151,7 +151,7 @@ namespace productMadness
                 }
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 //logInFile(String.Format("{0}::Error when trying to get timespan", DateTime.Now));
             }
@@ -201,6 +201,20 @@ namespace productMadness
             return result;
         }
 
+        public static bool CheckIfStatusIsValid(ulong statusId, List<String> statuses)
+        {
+            bool result = false;
+            Parallel.ForEach(statuses, row =>
+            {
+                if (row.Split(':')[0] == statusId.ToString())
+                {
+                    result = true;
+
+                }
+            });
+            return result;
+        }
+
         static void Main(string[] args)
         {
             #region testrail connect
@@ -238,6 +252,9 @@ namespace productMadness
 
             Console.WriteLine(String.Format("From:{0}\nTo:{1}\n", dateX, dateY));
             List<string> selectedProjects = new List<string>();
+            List<string> statuses = new List<string>();
+            var xst = testrail.GetStatuses();
+            var zz = 0;
             #region get project names
             try
             {
@@ -255,6 +272,23 @@ namespace productMadness
             }
 
             #endregion
+            #region get statuses
+            try
+            {
+                // Open the text file using a stream reader.
+                var arrayFile = File.ReadAllLines(dir + "\\statuses.txt");
+                Parallel.ForEach(arrayFile, row =>
+                {
+                    statuses.Add(row);
+                });
+            }
+            catch (Exception e)
+            {
+                logInFile(String.Format("{0}::Error when getting statuses", DateTime.Now));
+                return;
+            }
+            #endregion
+            var cx = CheckIfStatusIsValid(98, statuses);
 
             /*var projects = testrail.GetProjects().Where(x => /*x.Name == "PM - Back Office & Server" ||
                                                         x.Name == "PM - Cashman Casino - Mobile" ||
@@ -265,7 +299,7 @@ namespace productMadness
                                                         x.Name == "PM - Lightning Link - Mobile");
                                                         */
             var projects = testrail.GetProjects().Where(p => selectedProjects.Contains(p.Name));
-            
+
             var users = GetUsers(testrail);
             List<pm_repo.Model.TestResultEntry> entries = new List<pm_repo.Model.TestResultEntry>();
             #region iterate through results
@@ -273,8 +307,8 @@ namespace productMadness
             {
                 Console.Write(String.Format("Project:{0} ...", project.Name));
                 var rawMilestones = GetAllSubMilestones(testrail, project.ID);
-                var project_milestones = rawMilestones.Where(cm => cm.IsCompleted == true && 
-                                                                   cm.CompletedOn >= dateX && 
+                var project_milestones = rawMilestones.Where(cm => cm.IsCompleted == true &&
+                                                                   cm.CompletedOn >= dateX &&
                                                                    cm.CompletedOn < dateY);
                 //var project_milestones = testrail.GetMilestones(project.ID).Where(cm => cm.Name == "(Amazon) 3.2.0 Release Build - Full Test Pass 1 - Build 3.2.5 - UAT" && cm.IsCompleted == true && cm.CompletedOn >= dateX && cm.CompletedOn < dateY);
                 foreach (var pm in project_milestones)
@@ -309,12 +343,56 @@ namespace productMadness
                                     var case_estimate = case_info.Estimate;
                                     var createdByName = GetUserById(last_result.CreatedBy.Value, users);
                                     var period = dateX.ToString();
-                                    pm_repo.Model.TestResultEntry entry = new pm_repo.Model.TestResultEntry(project.Name, project.ID, pm.Name, pm.ID, test_info.Title, test_info.ID.Value,
-                                        case_info.ID.Value, last_result.ID, createdByName, last_result.Elapsed.Value.TotalSeconds, GetTimeSpanFromString(case_estimate.ToString()), period);
-                                    entries.Add(entry);
-                                    var et = 0;
+                                    var status = last_result.StatusID.Value;
+                                    var estimate = case_estimate.ToString();
+                                    var elapsed = last_result.Elapsed.Value.TotalSeconds;
+                                    #region elapsed & estimate check
+                                    //E = Ef
+                                    if (estimate == "0s" || estimate == "" || estimate == null)
+                                    {
+                                        //L = Lf
+                                        if (elapsed == null || elapsed <= 2)
+                                        {
+                                            //E = 0; L = 0
+                                            elapsed = 0;
+                                            estimate = "0s";
+                                        }
+                                        //L = Lp
+                                        else
+                                        {
+                                            //L = Lp ; E = Lp
+                                            estimate = String.Format("{0}", elapsed.ToString());
+                                        }
+                                    }
+                                    // E = Ep
+                                    else
+                                    {
+                                        //L = Lf
+                                        if (elapsed == null || elapsed <= 2)
+                                        {
+                                            //E = Ep ; L = Lp
+                                            elapsed = GetTimeSpanFromString(estimate);
+                                        }
+                                        //L = Lp
+                                        else
+                                        {
+                                            //E = Ep ; L = Lp
+                                        }
+                                    }
+                                    #endregion
+                                    if (CheckIfStatusIsValid(status, statuses) == true)
+                                    {
+                                        //status check passed
+                                        pm_repo.Model.TestResultEntry entry = new pm_repo.Model.TestResultEntry(project.Name, project.ID, pm.Name, pm.ID, test_info.Title, test_info.ID.Value,
+                                        case_info.ID.Value, last_result.ID, createdByName, elapsed, GetTimeSpanFromString(estimate)/*, status*/, period);
+                                        entries.Add(entry);
+                                    }
+                                    else
+                                    {
+                                        logInFile(String.Format("Project:{0}::Milestone:{1}::Plan:{2}::Run:{3}::Test:{4}::TestResult:{5}", project.ID, pm.ID, plan.ID, rp.ID, last_result.TestID, last_result.ID));
+                                    }
                                 }
-                                catch(Exception e)
+                                catch (Exception e)
                                 {
                                     logInFile(String.Format("Project:{0}::Milestone:{1}::Plan:{2}::Run:{3}::Test:{4}::TestResult:{5}", project.ID, pm.ID, plan.ID, rp.ID, last_result.TestID, last_result.ID));
                                 }
