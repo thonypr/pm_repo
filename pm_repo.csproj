@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CsvExport.cs" />
     <Compile Include="ExcelExport.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="Program.cs" />

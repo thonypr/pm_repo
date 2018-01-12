@@ -15,7 +15,7 @@ namespace pm_repo
             public String milestone { get; set; }
             public ulong milestoneId { get; set; }
             public String testName { get; set; }
-            public ulong testId { get; set; }
+            public String testId { get; set; }
             public ulong caseId { get; set; }
             public ulong testResultId { get; set; }
             public String createdBy { get; set; }
@@ -24,7 +24,7 @@ namespace pm_repo
             public String period { get; set; }
             //public ulong status { get; set; }
 
-            public TestResultEntry(String projectName, ulong projectId, String milestone, ulong milestoneId, String testName, ulong testId, 
+            public TestResultEntry(String projectName, ulong projectId, String milestone, ulong milestoneId, String testName, String testId, 
                 ulong caseId, ulong testResultId, String createdBy, double elapsedInSec, double estimateInSec/*, ulong status*/, String period) {
 
                 this.projectName = projectName;
